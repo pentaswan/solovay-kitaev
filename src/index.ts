@@ -12,8 +12,7 @@ export async function SolovayKitaev(U: MatrixSet, n: number=5, eps: number=1e-5)
     let [decomposition, U_prime] = await basicApproximation(gate_mat);
 
     for(let i = 0; i < n; i++) {
-        if(U.computed.distance(U_prime) < eps) {
-            console.warn('breaking!');
+        if(gate_mat.computed.distance(U_prime) < eps) {
             break;
         }
 
@@ -32,7 +31,7 @@ async function _SolovayKitaev(U: MatrixSet, n: number, U_n1_ids: MatrixSet, U_n1
     
     let [V, W] = await GCDecompose(new MatrixSet(U, U_n1_mat.clone().dagger()));
 
-    let V_n1_ids, W_n1_ids, V_n1_mat, W_n1_mat;
+    let V_n1_ids, W_n1_ids;
     for(let i = 0; i < 2; i++) {
         const C_n_ids = [V, W][i];
 
@@ -43,18 +42,13 @@ async function _SolovayKitaev(U: MatrixSet, n: number, U_n1_ids: MatrixSet, U_n1
             [C_n1_ids, C_n1_mat] = await _SolovayKitaev(C_n_ids, j, C_n1_ids, C_n1_mat);
         }
 
-        if(i === 0) {
-            V_n1_ids = C_n1_ids;
-            V_n1_mat = C_n1_mat;
-        } else {
-            W_n1_ids = C_n1_ids;
-            W_n1_mat = C_n1_mat;
-        }
+        if(i === 0) V_n1_ids = C_n1_ids;    
+        else W_n1_ids = C_n1_ids;
     }
 
     // compute VWV†W†U and its transpose
     const newIds = U_n1_ids.clone().mul(W_n1_ids!.clone().dagger()).mul(V_n1_ids!.clone().dagger()).mul(W_n1_ids!).mul(V_n1_ids!);
-    const newMat = V_n1_mat!.clone().mul(W_n1_mat!).mul(V_n1_mat!.clone().dagger()).mul(W_n1_mat!.clone().dagger()).mul(U_n1_mat);
+    const newMat = (await transformSU2(new MatrixSet(newIds.computed.clone().transpose())))[0].computed.clone();
 
     return [newIds, newMat];
 }

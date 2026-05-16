@@ -231,6 +231,43 @@ function closeToZero(vector: Vector, tol: number) {
     return true;
 }
 
+// // Old _SK function from index. has both newIds and newMat.
+// async function _SolovayKitaev(U: MatrixSet, n: number, U_n1_ids: MatrixSet, U_n1_mat: Matrix): Promise<[MatrixSet, Matrix]> {
+//     if(n === 0) {
+//         const [decomposition, u_prime] = await basicApproximation(U);
+
+//         return [decomposition, u_prime];
+//     }
+    
+//     let [V, W] = await GCDecompose(new MatrixSet(U, U_n1_mat.clone().dagger()));
+
+//     let V_n1_ids, W_n1_ids, V_n1_mat, W_n1_mat;
+//     for(let i = 0; i < 2; i++) {
+//         const C_n_ids = [V, W][i];
+
+//         let C_n1_ids = new MatrixSet();
+//         let C_n1_mat = new Matrix();
+
+//         for(let j = 0; j < n; j++) {
+//             [C_n1_ids, C_n1_mat] = await _SolovayKitaev(C_n_ids, j, C_n1_ids, C_n1_mat);
+//         }
+
+//         if(i === 0) {
+//             V_n1_ids = C_n1_ids;
+//             V_n1_mat = C_n1_mat;
+//         } else {
+//             W_n1_ids = C_n1_ids;
+//             W_n1_mat = C_n1_mat;
+//         }
+//     }
+
+//     // compute VWV†W†U and its transpose
+//     const newIds = U_n1_ids.clone().mul(W_n1_ids!.clone().dagger()).mul(V_n1_ids!.clone().dagger()).mul(W_n1_ids!).mul(V_n1_ids!);
+//     const newMat = V_n1_mat!.clone().mul(W_n1_mat!).mul(V_n1_mat!.clone().dagger()).mul(W_n1_mat!.clone().dagger()).mul(U_n1_mat);
+
+//     return [newIds, newMat];
+// }
+
 function quaternionTransform(matrix: Matrix): number[] {
     return [
         matrix.getElement(0, 0).real(),
