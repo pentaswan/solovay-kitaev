@@ -138,7 +138,7 @@ function _basicApproximation(U: MatrixSet): MatrixSet {
     return closestSet.clone();
 }
 
-export async function basicApproximation(U: MatrixSet): Promise<[MatrixSet, Matrix, number]> {
+export async function basicApproximation(U: MatrixSet): Promise<[MatrixSet, number]> {
     const data = matrixSetToData(U);
 
     const r = JSON.parse(await sendServer(data, 'approx')) as number[];
@@ -188,11 +188,11 @@ export async function basicApproximation(U: MatrixSet): Promise<[MatrixSet, Matr
     //     throw new Error('decomposition difference!');
     // }
 
-    return [decomposition, u_prime/*decomp_SU2*/, global_phase/*phase*/];
+    return [decomposition.clone().reverse(), global_phase/*phase*/];
 }
 
 export async function transformSU2(U: MatrixSet): Promise<[MatrixSet, number]> {
-    const [_, _2, globalPhase] = await basicApproximation(U);
+    const [_, globalPhase] = await basicApproximation(U);
     const [decomposed, gatePhase] = U.computed.clone().transformSU2();
 
     const phase = globalPhase - gatePhase;
