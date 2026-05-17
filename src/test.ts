@@ -89,7 +89,7 @@ console.log({isUnitary: U.isUnitary(), determinant: U.determinant()});
 const U = new Matrix().addNoise(1, NoiseType.Unitary);
 
 (async() => {
-    const result = await SolovayKitaev(new MatrixSet(U), 3);
+    const result = await SolovayKitaev(U, 3);
 
     console.log('Approximating gate:');
     U.log();

@@ -464,13 +464,6 @@ def handle_approx():
 
     decomposition, u_prime, phase = approx_set_ids[index], approx_set_mat[index], approx_set_gph[index]
 
-    # print('/approx')
-    # print(index)
-    # print('U')
-    # print(U)
-    # print('gph')
-    # print(phase)
-
     data = []
     
     for row in u_prime:

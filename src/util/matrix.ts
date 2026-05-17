@@ -1,3 +1,4 @@
+import { clampZeroToTwoPi } from "../util";
 import { gatesAndNames } from "./availableGates";
 import { ComplexNumber } from "./complex";
 import { ComplexVector } from "./complexVector";
@@ -119,20 +120,20 @@ export class Matrix {
 
         return this;
     }
-    
+
+    // We want to make the det 1 by multiplying by some complex number c, |c| = 1.
+    // C will change the phase twofold because we're multiplying both the top and bottom
+    // elements of the matrix by it and the determinant is proportional to the product.
+    // So, multiply by e^(-iθ/2) instead of e^(-iθ).
+    // Other than that, this function does some tricks if phase is close to pi and that's it.
+
     transformSU2(tol: number=1e-5): [Matrix, number] {
         const det = this.determinant();
-        const detPhase = (Math.atan2(det.imaginary(), det.real()) + Math.PI * 2) % (Math.PI * 2);
-
-        // We want to make the det 1 by multiplying by some complex number c, |c| = 1.
-        // C will change the phase twofold because we're multiplying both the top and bottom
-        // elements of the matrix by it and the determinant is proportional to the product.
-        // So, multiply by e^(-iθ/2) instead of e^(-iθ).
-        // Other than that, this function does some tricks if phase is close to pi and that's it.
+        const detPhase = clampZeroToTwoPi(Math.atan2(det.imaginary(), det.real()));
 
         const gPhase = detPhase / 2;
 
-        const gPhaseCloseToPi = Math.abs(((gPhase + Math.PI * 2) % Math.PI * 2) - Math.PI) < tol;
+        const gPhaseCloseToPi = Math.abs(clampZeroToTwoPi(gPhase) - Math.PI) < tol;
         const rPhase = (-1) ** (gPhaseCloseToPi ? 1 : 0);
 
         this.scaleComplex(new ComplexNumber(0, -gPhase).exp()).scale(rPhase);
@@ -230,8 +231,6 @@ export class Matrix {
 
     toString(short: boolean = false): string {
         const name = this.name();
-
-        // if(name !== '?') return name;
 
         const displayName = name !== '?';
         return `${displayName ? `${name.replace('_dagger', '†')}${short ? '' : ' '}` : ''}${(short && displayName) ? '' : `[

@@ -14,8 +14,8 @@ async function sendServer(data: any, route: string): Promise<string> {
     })
 }
 
-export async function GCDecompose(matrix: MatrixSet, tol: number = 1e-5): Promise<[MatrixSet, MatrixSet]> {
-    const quaternion = quaternionTransform(matrix.computed);
+export async function GCDecompose(matrix: Matrix, tol: number = 1e-5): Promise<[MatrixSet, MatrixSet]> {
+    const quaternion = quaternionTransform(matrix);
 
     const theta = 2 * Math.acos(clamp(quaternion[0], -1, 1));
     const axis = new Vector(quaternion[1], quaternion[2], quaternion[3]);
@@ -32,8 +32,8 @@ export async function GCDecompose(matrix: MatrixSet, tol: number = 1e-5): Promis
     const w = new MatrixSet(RY(axis.z > 0 ? Math.PI * 2 - phi : phi));
 
     // diagonalize u, v, w
-    const ud = await eigenvectors(matrix);
-    const vwd = await eigenvectors(groupCommutator(v, w));
+    const ud = new MatrixSet(await eigenvectors(matrix));
+    const vwd = new MatrixSet(await eigenvectors(groupCommutator(v, w).computed));
 
     const s = ud.clone().mul(vwd.clone().dagger());
     const sdg = s.clone().dagger();
@@ -74,8 +74,8 @@ export async function GCDecompose(matrix: MatrixSet, tol: number = 1e-5): Promis
 // console.log("w_hat")
 // w_hat.log();
 
-function matrixSetToData(U: MatrixSet): {real: number, imaginary: number}[] {
-    const d = (U.computed as any).data;
+function matrixSetToData(U: Matrix): {real: number, imaginary: number}[] {
+    const d = (U as any).data;
     let data = [];
     for(let i = 0; i < d.length; i++) {
         const num = d[i] as ComplexNumber;
@@ -86,7 +86,7 @@ function matrixSetToData(U: MatrixSet): {real: number, imaginary: number}[] {
     return data;
 }
 
-async function eigenvectors(U: MatrixSet): Promise<MatrixSet> {
+async function eigenvectors(U: Matrix): Promise<Matrix> {
     return U.eigenvectors();
 }
 
@@ -138,7 +138,7 @@ function _basicApproximation(U: MatrixSet): MatrixSet {
     return closestSet.clone();
 }
 
-export async function basicApproximation(U: MatrixSet): Promise<[MatrixSet, number]> {
+export async function basicApproximation(U: Matrix): Promise<[MatrixSet, number]> {
     const data = matrixSetToData(U);
 
     const r = JSON.parse(await sendServer(data, 'approx')) as number[];
@@ -191,13 +191,13 @@ export async function basicApproximation(U: MatrixSet): Promise<[MatrixSet, numb
     return [decomposition.clone().reverse(), global_phase/*phase*/];
 }
 
-export async function transformSU2(U: MatrixSet): Promise<[MatrixSet, number]> {
+export async function transformSU2(U: Matrix): Promise<[Matrix, number]> {
     const [_, globalPhase] = await basicApproximation(U);
-    const [decomposed, gatePhase] = U.computed.clone().transformSU2();
+    const [decomposed, gatePhase] = U.clone().transformSU2();
 
     const phase = globalPhase - gatePhase;
 
-    return [new MatrixSet(decomposed), phase];
+    return [decomposed, phase];
 }
 
 // TEMP
